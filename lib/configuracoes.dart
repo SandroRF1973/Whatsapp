@@ -1,5 +1,8 @@
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:firebase_storage/firebase_storage.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'dart:io';
 
 class Configuracoes extends StatefulWidget {
@@ -12,6 +15,9 @@ class Configuracoes extends StatefulWidget {
 class _ConfiguracoesState extends State<Configuracoes> {
   final TextEditingController _controllerNome = TextEditingController();
   late File _imagem;
+  late String _idUsuarioLogado;
+  // ignore: prefer_final_fields, unused_field
+  bool _subindoImagem = false;
 
   Future _recuperarImagem(String origemImagem) async {
     late File imagemSelecionada;
@@ -32,7 +38,47 @@ class _ConfiguracoesState extends State<Configuracoes> {
 
     setState(() {
       _imagem = imagemSelecionada;
+      // ignore: unnecessary_null_comparison
+      if (_imagem != null) {
+        _subindoImagem = true;
+        _uploadImagem();
+      }
     });
+  }
+
+  Future _uploadImagem() async {
+    FirebaseStorage storage = FirebaseStorage.instance;
+    final pastaRaiz = storage.ref();
+    final arquivo = pastaRaiz.child("perfil").child("$_idUsuarioLogado.jpg");
+
+    UploadTask task = arquivo.putFile(_imagem);
+    task.snapshotEvents.listen((event) {
+      final int percent =
+          ((event.bytesTransferred / event.totalBytes) * 100).round();
+      if (percent < 100) {
+        setState(() {
+          _subindoImagem = true;
+        });
+      } else {
+        _subindoImagem = false;
+      }
+    });
+  }
+
+  _recuperarDadosUsuario() async {
+    WidgetsFlutterBinding.ensureInitialized();
+
+    await Firebase.initializeApp();
+
+    FirebaseAuth auth = FirebaseAuth.instance;
+    final usuarioLogado = auth.currentUser;
+    _idUsuarioLogado = usuarioLogado!.uid;
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _recuperarDadosUsuario();
   }
 
   @override
@@ -47,6 +93,9 @@ class _ConfiguracoesState extends State<Configuracoes> {
           child: SingleChildScrollView(
             child: Column(
               children: [
+                _subindoImagem
+                    ? const CircularProgressIndicator()
+                    : Container(),
                 // ignore: prefer_const_constructors
                 CircleAvatar(
                   radius: 100,
