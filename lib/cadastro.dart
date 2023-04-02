@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:whatsapp/home.dart';
 import 'package:whatsapp/model/usuario.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -74,8 +73,10 @@ class _CadastroState extends State<Cadastro> {
 
       db.collection("usuarios").doc(firebaseUser.user!.uid).set(usuarioMap);
 
-      Navigator.pushReplacement(
-          context, MaterialPageRoute(builder: (context) => const Home()));
+      Navigator.pushNamedAndRemoveUntil(context, "/home", (_) => false);
+
+      // Navigator.pushReplacement(
+      //     context, MaterialPageRoute(builder: (context) => const Home()));
     }).catchError((error) {
       setState(() {
         _mensagemErro =

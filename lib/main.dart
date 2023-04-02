@@ -2,6 +2,7 @@
 import 'package:flutter/material.dart';
 // import 'package:whatsapp/home.dart';
 import 'package:whatsapp/login.dart';
+import 'package:whatsapp/routegenerator.dart';
 // import 'package:cloud_firestore/cloud_firestore.dart';
 
 void main() async {
@@ -23,5 +24,7 @@ void main() async {
         colorScheme: theme.colorScheme.copyWith(
             primary: const Color(0xff075E54),
             secondary: const Color(0xff25D366))),
+    initialRoute: "/",
+    onGenerateRoute: RouteGenerator.generateRoute,
   ));
 }

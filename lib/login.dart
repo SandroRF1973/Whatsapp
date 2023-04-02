@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:whatsapp/cadastro.dart';
-import 'package:whatsapp/home.dart';
 import 'package:whatsapp/model/usuario.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -58,8 +57,10 @@ class _LoginState extends State<Login> {
         .signInWithEmailAndPassword(
             email: usuario.email, password: usuario.senha)
         .then((firebaseUser) {
-      Navigator.pushReplacement(
-          context, MaterialPageRoute(builder: (context) => const Home()));
+      Navigator.pushReplacementNamed(context, "/home");
+
+      // Navigator.pushReplacement(
+      //     context, MaterialPageRoute(builder: (context) => const Home()));
     }).catchError((error) {
       setState(() {
         _mensagemErro = "Erro ao autenticar usuário, verifique e-mail e senha";
@@ -79,8 +80,11 @@ class _LoginState extends State<Login> {
 
     if (usuarioLogado != null) {
       // ignore: use_build_context_synchronously
-      Navigator.pushReplacement(
-          context, MaterialPageRoute(builder: (context) => const Home()));
+      Navigator.pushReplacementNamed(context, "/home");
+
+      // ignore: use_build_context_synchronously
+      // Navigator.pushReplacement(
+      //     context, MaterialPageRoute(builder: (context) => const Home()));
     }
   }
 
