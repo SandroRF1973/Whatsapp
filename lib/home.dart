@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
-import 'package:whatsapp/login.dart';
 import 'package:whatsapp/telas/abacontatos.dart';
 import 'package:whatsapp/telas/abaconversas.dart';
 
