@@ -18,21 +18,50 @@ class _ConfiguracoesState extends State<Configuracoes> {
   late String _idUsuarioLogado;
   // ignore: prefer_final_fields, unused_field
   bool _subindoImagem = false;
+  String? _urlImagemRecuperada;
 
   Future _recuperarImagem(String origemImagem) async {
     late File imagemSelecionada;
     switch (origemImagem) {
       case "camera":
-        imagemSelecionada =
+        // imagemSelecionada =
+        //     // ignore: invalid_use_of_visible_for_testing_member
+        //     (await ImagePicker.platform.pickImage(source: ImageSource.camera))
+        //         as File;
+
+        PickedFile? pickedFile =
             // ignore: invalid_use_of_visible_for_testing_member
-            (await ImagePicker.platform.pickImage(source: ImageSource.camera))
-                as File;
+            await ImagePicker.platform.pickImage(source: ImageSource.camera);
+
+        if (pickedFile != null) {
+          imagemSelecionada = File(pickedFile.path);
+          // final directory = await getApplicationDocumentsDirectory();
+          // final newImagePath =
+          //     '${directory.path}/${pickedFile.path.split('/').last}';
+          // await imagemSelecionada.copy(newImagePath);
+          // imagemSelecionada = File(newImagePath);
+        }
+
         break;
       case "galeria":
-        imagemSelecionada =
+        //imagemSelecionada =
+        // ignore: invalid_use_of_visible_for_testing_member
+        // (await ImagePicker.platform.pickImage(source: ImageSource.gallery))
+        //     as File;
+
+        PickedFile? pickedFile =
             // ignore: invalid_use_of_visible_for_testing_member
-            (await ImagePicker.platform.pickImage(source: ImageSource.gallery))
-                as File;
+            await ImagePicker.platform.pickImage(source: ImageSource.gallery);
+
+        if (pickedFile != null) {
+          imagemSelecionada = File(pickedFile.path);
+          // final directory = await getApplicationDocumentsDirectory();
+          // final newImagePath =
+          //     '${directory.path}/${pickedFile.path.split('/').last}';
+          // await imagemSelecionada.copy(newImagePath);
+          // imagemSelecionada = File(newImagePath);
+        }
+
         break;
     }
 
@@ -52,16 +81,29 @@ class _ConfiguracoesState extends State<Configuracoes> {
     final arquivo = pastaRaiz.child("perfil").child("$_idUsuarioLogado.jpg");
 
     UploadTask task = arquivo.putFile(_imagem);
-    task.snapshotEvents.listen((event) {
-      final int percent =
-          ((event.bytesTransferred / event.totalBytes) * 100).round();
-      if (percent < 100) {
+    task.snapshotEvents.listen((TaskSnapshot snapshot) {
+      if (snapshot.state == TaskState.running) {
+        // double progress = snapshot.bytesTransferred / snapshot.totalBytes;
         setState(() {
           _subindoImagem = true;
         });
-      } else {
-        _subindoImagem = false;
+      } else if (snapshot.state == TaskState.success) {
+        setState(() {
+          _subindoImagem = false;
+        });
       }
+    });
+
+    task.then((TaskSnapshot snapshot) {
+      _recuperarUrlImagem(snapshot);
+    });
+  }
+
+  _recuperarUrlImagem(TaskSnapshot snapshot) async {
+    String url = await snapshot.ref.getDownloadURL();
+
+    setState(() {
+      _urlImagemRecuperada = url;
     });
   }
 
@@ -100,8 +142,9 @@ class _ConfiguracoesState extends State<Configuracoes> {
                 CircleAvatar(
                   radius: 100,
                   backgroundColor: Colors.grey,
-                  backgroundImage: const NetworkImage(
-                      "https://firebasestorage.googleapis.com/v0/b/whatsapp-projeto-64d68.appspot.com/o/perfil%2Fperfil5.jpg?alt=media&token=0e62bfde-f7a0-4d7a-9410-733d6618a548"),
+                  backgroundImage: _urlImagemRecuperada != null
+                      ? NetworkImage(_urlImagemRecuperada!)
+                      : null,
                 ),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
