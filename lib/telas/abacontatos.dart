@@ -1,5 +1,8 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:whatsapp/model/conversa.dart';
+import 'package:whatsapp/model/usuario.dart';
 
 class AbaContatos extends StatefulWidget {
   const AbaContatos({super.key});
@@ -21,6 +24,29 @@ class _AbaContatosState extends State<AbaContatos> {
     Conversa("Jamilton", "Olá tudo bem?",
         "https://firebasestorage.googleapis.com/v0/b/whatsapp-projeto-64d68.appspot.com/o/perfil%2Fperfil5.jpg?alt=media&token=0e62bfde-f7a0-4d7a-9410-733d6618a548"),
   ];
+
+  Future<List<Usuario>> _RecuperarContatos() async {
+    WidgetsFlutterBinding.ensureInitialized();
+
+    await Firebase.initializeApp();
+
+    FirebaseFirestore db = FirebaseFirestore.instance;
+
+    QuerySnapshot querySnapshot = await db.collection("usuarios").get();
+
+    List<Usuario> listaUsuarios = List.empty();
+
+    for (DocumentSnapshot item in querySnapshot.docs) {
+      var dados = item.data();
+
+      Usuario usuario = Usuario();
+      usuario.email = dados["email"] as String;
+
+      listaUsuarios.add(usuario);
+    }
+
+    return listaUsuarios;
+  }
 
   @override
   Widget build(BuildContext context) {
