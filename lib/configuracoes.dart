@@ -1,9 +1,10 @@
-import 'package:firebase_core/firebase_core.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:firebase_storage/firebase_storage.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'dart:io';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 
 class Configuracoes extends StatefulWidget {
   const Configuracoes({super.key});
@@ -101,10 +102,37 @@ class _ConfiguracoesState extends State<Configuracoes> {
 
   _recuperarUrlImagem(TaskSnapshot snapshot) async {
     String url = await snapshot.ref.getDownloadURL();
+    _atualizarUrlImagemFirestore(url);
 
     setState(() {
       _urlImagemRecuperada = url;
     });
+  }
+
+  _atualizarNomeFirestore() async {
+    String nome = _controllerNome.text;
+
+    WidgetsFlutterBinding.ensureInitialized();
+
+    await Firebase.initializeApp();
+
+    FirebaseFirestore db = FirebaseFirestore.instance;
+
+    Map<String, dynamic> dadosAtualizar = {"nome": nome};
+
+    db.collection("usuarios").doc(_idUsuarioLogado).update(dadosAtualizar);
+  }
+
+  _atualizarUrlImagemFirestore(String url) async {
+    WidgetsFlutterBinding.ensureInitialized();
+
+    await Firebase.initializeApp();
+
+    FirebaseFirestore db = FirebaseFirestore.instance;
+
+    Map<String, dynamic> dadosAtualizar = {"urlImagem": url};
+
+    db.collection("usuarios").doc(_idUsuarioLogado).update(dadosAtualizar);
   }
 
   _recuperarDadosUsuario() async {
@@ -115,6 +143,29 @@ class _ConfiguracoesState extends State<Configuracoes> {
     FirebaseAuth auth = FirebaseAuth.instance;
     final usuarioLogado = auth.currentUser;
     _idUsuarioLogado = usuarioLogado!.uid;
+
+    WidgetsFlutterBinding.ensureInitialized();
+
+    await Firebase.initializeApp();
+
+    FirebaseFirestore db = FirebaseFirestore.instance;
+
+    DocumentSnapshot snapshot =
+        await db.collection("usuarios").doc(_idUsuarioLogado).get();
+
+    // Map<String, dynamic> dados = snapshot.data as  Map<String, dynamic>;
+    // Map<String, dynamic> dados = snapshot.data;
+    Map<String, dynamic> dados = snapshot.data() as Map<String, dynamic>;
+    _controllerNome.text = dados["nome"];
+
+    if (dados["urlImagem"] != null) {
+      // ignore: avoid_print
+      print("Print da imagem : ${dados["urlImagem"]}");
+
+      setState(() {
+        _urlImagemRecuperada = dados["urlImagem"];
+      });
+    }
   }
 
   @override
@@ -135,9 +186,13 @@ class _ConfiguracoesState extends State<Configuracoes> {
           child: SingleChildScrollView(
             child: Column(
               children: [
-                _subindoImagem
-                    ? const CircularProgressIndicator()
-                    : Container(),
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  child: _subindoImagem
+                      ? const CircularProgressIndicator()
+                      : Container(),
+                ),
+
                 // ignore: prefer_const_constructors
                 CircleAvatar(
                   radius: 100,
@@ -171,6 +226,9 @@ class _ConfiguracoesState extends State<Configuracoes> {
                     autofocus: true,
                     keyboardType: TextInputType.text,
                     style: const TextStyle(fontSize: 20),
+                    // onChanged: (texto) {
+                    //   _atualizarNomeFirestore(texto);
+                    // },
                     decoration: InputDecoration(
                         contentPadding:
                             const EdgeInsets.fromLTRB(32, 16, 32, 16),
@@ -194,7 +252,7 @@ class _ConfiguracoesState extends State<Configuracoes> {
                       style: TextStyle(color: Colors.white, fontSize: 20),
                     ),
                     onPressed: () {
-                      // _validarCampos();
+                      _atualizarNomeFirestore();
                     },
                   ),
                 ),
