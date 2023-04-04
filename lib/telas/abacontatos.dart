@@ -92,7 +92,10 @@ class _AbaContatosState extends State<AbaContatos> {
                 Usuario usuario = listaItens[indice];
 
                 return ListTile(
-                  onTap: () {},
+                  onTap: () {
+                    Navigator.pushNamed(context, "/mensagens",
+                        arguments: usuario);
+                  },
                   contentPadding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
                   leading: CircleAvatar(
                     maxRadius: 30,
