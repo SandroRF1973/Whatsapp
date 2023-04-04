@@ -99,7 +99,23 @@ class _MensagensState extends State<Mensagens> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(widget.contato.nome),
+        title: Row(
+          children: [
+            CircleAvatar(
+              maxRadius: 20,
+              backgroundColor: Colors.grey,
+              backgroundImage:
+                  // ignore: unnecessary_null_comparison
+                  widget.contato.urlImagem != null
+                      ? NetworkImage(widget.contato.urlImagem)
+                      : null,
+            ),
+            Padding(
+              padding: const EdgeInsets.only(left: 6),
+              child: Text(widget.contato.nome),
+            )
+          ],
+        ),
       ),
       body: Container(
         width: MediaQuery.of(context).size.width,

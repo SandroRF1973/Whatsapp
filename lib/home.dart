@@ -31,9 +31,25 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
     });
   }
 
+  Future _verificarUsuarioLogado() async {
+    WidgetsFlutterBinding.ensureInitialized();
+
+    await Firebase.initializeApp();
+
+    FirebaseAuth auth = FirebaseAuth.instance;
+
+    final usuarioLogado = auth.currentUser;
+
+    if (usuarioLogado != null) {
+      // ignore: use_build_context_synchronously
+      Navigator.pushReplacementNamed(context, "/login");
+    }
+  }
+
   @override
   void initState() {
     super.initState();
+    //_verificarUsuarioLogado();
 
     _recuperarDadosUsuario();
 
