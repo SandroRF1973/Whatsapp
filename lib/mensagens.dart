@@ -11,6 +11,11 @@ class Mensagens extends StatefulWidget {
 }
 
 class _MensagensState extends State<Mensagens> {
+  List<String> listaMensagens = [
+    "Olá!",
+    "Olá, tudo bem?",
+    "Tudo ótimo, e contigo?"
+  ];
   final TextEditingController _controllerMensagem = TextEditingController();
   _enviarMensagem() {}
   _enviarFoto() {}
@@ -59,6 +64,39 @@ class _MensagensState extends State<Mensagens> {
       ),
     );
 
+    var listView = Expanded(
+        child: ListView.builder(
+            itemCount: listaMensagens.length,
+            itemBuilder: (context, indice) {
+              double larguraContainer = MediaQuery.of(context).size.width * 0.8;
+              Alignment alinhamento = Alignment.centerRight;
+              Color cor = const Color(0xffd2ffa5);
+
+              if (indice % 2 == 0) {
+                alinhamento = Alignment.centerLeft;
+                cor = Colors.white;
+              }
+
+              return Align(
+                alignment: alinhamento,
+                child: Padding(
+                  padding: const EdgeInsets.all(6),
+                  child: Container(
+                    width: larguraContainer,
+                    padding: const EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                        color: cor,
+                        borderRadius:
+                            const BorderRadius.all(Radius.circular(8))),
+                    child: Text(
+                      listaMensagens[indice],
+                      style: const TextStyle(fontSize: 18),
+                    ),
+                  ),
+                ),
+              );
+            }));
+
     return Scaffold(
       appBar: AppBar(
         title: Text(widget.contato.nome),
@@ -72,7 +110,7 @@ class _MensagensState extends State<Mensagens> {
             child: Container(
           padding: const EdgeInsets.all(8),
           child: Column(
-            children: [const Text("listview"), caixaMensagem],
+            children: [listView, caixaMensagem],
           ),
         )),
       ),
