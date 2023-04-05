@@ -1,4 +1,5 @@
 class Usuario {
+  String? _idUsuario;
   String? _nome;
   String? _email;
   String? _senha;
@@ -10,6 +11,12 @@ class Usuario {
     Map<String, dynamic> map = {"nome": nome, "email": email};
 
     return map;
+  }
+
+  String get idUsuario => _idUsuario ?? "";
+
+  set idUsuario(String value) {
+    _idUsuario = value;
   }
 
   String get nome => _nome ?? "";

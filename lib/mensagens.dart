@@ -1,4 +1,8 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:whatsapp/model/mensagem.dart';
 import 'package:whatsapp/model/usuario.dart';
 
 class Mensagens extends StatefulWidget {
@@ -11,14 +15,66 @@ class Mensagens extends StatefulWidget {
 }
 
 class _MensagensState extends State<Mensagens> {
+  late String _idUsuarioLogado;
+  late String _idUsuarioDestinatario;
+
   List<String> listaMensagens = [
     "Olá!",
     "Olá, tudo bem?",
     "Tudo ótimo, e contigo?"
   ];
   final TextEditingController _controllerMensagem = TextEditingController();
-  _enviarMensagem() {}
+  _enviarMensagem() {
+    String textoMensagem = _controllerMensagem.text;
+
+    if (textoMensagem.isNotEmpty) {
+      Mensagem mensagem = Mensagem();
+      mensagem.idUsuario = _idUsuarioLogado;
+      mensagem.mensagem = textoMensagem;
+      mensagem.urlImagem = "";
+      mensagem.tipo = "texto";
+
+      _salvarMensagem(_idUsuarioLogado, _idUsuarioDestinatario, mensagem);
+    }
+  }
+
+  _salvarMensagem(
+      String idRemetente, String idDestinatario, Mensagem msg) async {
+    WidgetsFlutterBinding.ensureInitialized();
+
+    await Firebase.initializeApp();
+
+    FirebaseFirestore db = FirebaseFirestore.instance;
+
+    await db
+        .collection("mensagens")
+        .doc(idRemetente)
+        .collection(idDestinatario)
+        .add(msg.toMap());
+
+    _controllerMensagem.clear();
+  }
+
   _enviarFoto() {}
+
+  _recuperarDadosUsuario() async {
+    WidgetsFlutterBinding.ensureInitialized();
+
+    await Firebase.initializeApp();
+
+    FirebaseAuth auth = FirebaseAuth.instance;
+    final usuarioLogado = auth.currentUser;
+    _idUsuarioLogado = usuarioLogado!.uid;
+
+    _idUsuarioDestinatario = widget.contato.idUsuario;
+  }
+
+  @override
+  void initState() {
+    super.initState();
+
+    _recuperarDadosUsuario();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -111,7 +167,7 @@ class _MensagensState extends State<Mensagens> {
                       : null,
             ),
             Padding(
-              padding: const EdgeInsets.only(left: 6),
+              padding: const EdgeInsets.only(left: 8),
               child: Text(widget.contato.nome),
             )
           ],

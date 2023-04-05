@@ -35,6 +35,7 @@ class _AbaContatosState extends State<AbaContatos> {
       }
 
       Usuario usuario = Usuario();
+      usuario.idUsuario = item.id;
       usuario.email = dados["email"];
       usuario.nome = dados["nome"];
       usuario.urlImagem = dados["urlImagem"];

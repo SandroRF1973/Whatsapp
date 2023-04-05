@@ -38,9 +38,10 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
 
     FirebaseAuth auth = FirebaseAuth.instance;
 
-    final usuarioLogado = auth.currentUser;
+    // ignore: await_only_futures
+    final usuarioLogado = await auth.currentUser;
 
-    if (usuarioLogado != null) {
+    if (usuarioLogado == null) {
       // ignore: use_build_context_synchronously
       Navigator.pushReplacementNamed(context, "/login");
     }
@@ -49,7 +50,7 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
   @override
   void initState() {
     super.initState();
-    //_verificarUsuarioLogado();
+    _verificarUsuarioLogado();
 
     _recuperarDadosUsuario();
 
