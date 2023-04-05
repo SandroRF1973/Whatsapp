@@ -1,12 +1,11 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:whatsapp/model/mensagem.dart';
 import 'package:whatsapp/model/usuario.dart';
 
 class Mensagens extends StatefulWidget {
-  late Usuario contato;
+  Usuario contato;
 
   Mensagens(this.contato);
 
@@ -17,13 +16,10 @@ class Mensagens extends StatefulWidget {
 class _MensagensState extends State<Mensagens> {
   late String _idUsuarioLogado;
   late String _idUsuarioDestinatario;
+  FirebaseFirestore db = FirebaseFirestore.instance;
 
-  List<String> listaMensagens = [
-    "Olá!",
-    "Olá, tudo bem?",
-    "Tudo ótimo, e contigo?"
-  ];
   final TextEditingController _controllerMensagem = TextEditingController();
+
   _enviarMensagem() {
     String textoMensagem = _controllerMensagem.text;
 
@@ -40,12 +36,6 @@ class _MensagensState extends State<Mensagens> {
 
   _salvarMensagem(
       String idRemetente, String idDestinatario, Mensagem msg) async {
-    WidgetsFlutterBinding.ensureInitialized();
-
-    await Firebase.initializeApp();
-
-    FirebaseFirestore db = FirebaseFirestore.instance;
-
     await db
         .collection("mensagens")
         .doc(idRemetente)
@@ -58,14 +48,10 @@ class _MensagensState extends State<Mensagens> {
   _enviarFoto() {}
 
   _recuperarDadosUsuario() async {
-    WidgetsFlutterBinding.ensureInitialized();
-
-    await Firebase.initializeApp();
-
     FirebaseAuth auth = FirebaseAuth.instance;
     final usuarioLogado = auth.currentUser;
-    _idUsuarioLogado = usuarioLogado!.uid;
 
+    _idUsuarioLogado = usuarioLogado!.uid;
     _idUsuarioDestinatario = widget.contato.idUsuario;
   }
 
@@ -120,38 +106,74 @@ class _MensagensState extends State<Mensagens> {
       ),
     );
 
-    var listView = Expanded(
-        child: ListView.builder(
-            itemCount: listaMensagens.length,
-            itemBuilder: (context, indice) {
-              double larguraContainer = MediaQuery.of(context).size.width * 0.8;
-              Alignment alinhamento = Alignment.centerRight;
-              Color cor = const Color(0xffd2ffa5);
+    var stream = StreamBuilder(
+      stream: db
+          .collection("mensagens")
+          .doc(_idUsuarioLogado)
+          .collection(_idUsuarioDestinatario)
+          .snapshots(),
+      builder: (context, snapshot) {
+        switch (snapshot.connectionState) {
+          case ConnectionState.none:
+          case ConnectionState.waiting:
+            return Center(
+              child: Column(
+                children: const [
+                  Text("Carregando mensagens"),
+                  CircularProgressIndicator()
+                ],
+              ),
+            );
+          case ConnectionState.active:
+          case ConnectionState.done:
+            QuerySnapshot<Map<String, dynamic>>? querySnapshot = snapshot.data;
 
-              if (indice % 2 == 0) {
-                alinhamento = Alignment.centerLeft;
-                cor = Colors.white;
-              }
-
-              return Align(
-                alignment: alinhamento,
-                child: Padding(
-                  padding: const EdgeInsets.all(6),
-                  child: Container(
-                    width: larguraContainer,
-                    padding: const EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                        color: cor,
-                        borderRadius:
-                            const BorderRadius.all(Radius.circular(8))),
-                    child: Text(
-                      listaMensagens[indice],
-                      style: const TextStyle(fontSize: 18),
-                    ),
-                  ),
-                ),
+            if (snapshot.hasError) {
+              return const Expanded(
+                child: Text("Erro ao carregar os dados!"),
               );
-            }));
+            } else {
+              return Expanded(
+                  child: ListView.builder(
+                      itemCount: querySnapshot?.docs.length,
+                      itemBuilder: (context, indice) {
+                        List<DocumentSnapshot> mensagens =
+                            querySnapshot!.docs.toList();
+                        DocumentSnapshot item = mensagens[indice];
+
+                        double larguraContainer =
+                            MediaQuery.of(context).size.width * 0.8;
+                        Alignment alinhamento = Alignment.centerRight;
+                        Color cor = const Color(0xffd2ffa5);
+
+                        if (_idUsuarioLogado != item["idUsuario"]) {
+                          alinhamento = Alignment.centerLeft;
+                          cor = Colors.white;
+                        }
+
+                        return Align(
+                          alignment: alinhamento,
+                          child: Padding(
+                            padding: const EdgeInsets.all(6),
+                            child: Container(
+                              width: larguraContainer,
+                              padding: const EdgeInsets.all(16),
+                              decoration: BoxDecoration(
+                                  color: cor,
+                                  borderRadius: const BorderRadius.all(
+                                      Radius.circular(8))),
+                              child: Text(
+                                item["mensagem"],
+                                style: const TextStyle(fontSize: 18),
+                              ),
+                            ),
+                          ),
+                        );
+                      }));
+            }
+        }
+      },
+    );
 
     return Scaffold(
       appBar: AppBar(
@@ -182,7 +204,7 @@ class _MensagensState extends State<Mensagens> {
             child: Container(
           padding: const EdgeInsets.all(8),
           child: Column(
-            children: [listView, caixaMensagem],
+            children: [stream, caixaMensagem],
           ),
         )),
       ),
