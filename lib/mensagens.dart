@@ -1,8 +1,11 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:whatsapp/model/mensagem.dart';
 import 'package:whatsapp/model/usuario.dart';
+import 'package:firebase_storage/firebase_storage.dart';
+import 'dart:io';
 
 class Mensagens extends StatefulWidget {
   Usuario contato;
@@ -14,6 +17,8 @@ class Mensagens extends StatefulWidget {
 }
 
 class _MensagensState extends State<Mensagens> {
+  bool _subindoImagem = false;
+  late File _imagem;
   late String _idUsuarioLogado;
   late String _idUsuarioDestinatario;
   FirebaseFirestore db = FirebaseFirestore.instance;
@@ -49,7 +54,45 @@ class _MensagensState extends State<Mensagens> {
     _controllerMensagem.clear();
   }
 
-  _enviarFoto() {}
+  _enviarFoto() async {
+    //late File imagemSelecionada;
+
+    PickedFile? imagemSelecionada =
+        // ignore: invalid_use_of_visible_for_testing_member
+        await ImagePicker.platform.pickImage(source: ImageSource.gallery);
+
+    _subindoImagem = true;
+    String nomeImagem = DateTime.now().millisecondsSinceEpoch.toString();
+    FirebaseStorage storage = FirebaseStorage.instance;
+    final pastaRaiz = storage.ref();
+    final arquivo = pastaRaiz
+        .child("mensagens")
+        .child(_idUsuarioLogado)
+        .child("$nomeImagem.jpg");
+
+    UploadTask task = arquivo.putFile(_imagem);
+
+    task.snapshotEvents.listen((TaskSnapshot snapshot) {
+      if (snapshot.state == TaskState.running) {
+        // double progress = snapshot.bytesTransferred / snapshot.totalBytes;
+        setState(() {
+          _subindoImagem = true;
+        });
+      } else if (snapshot.state == TaskState.success) {
+        setState(() {
+          _subindoImagem = false;
+        });
+      }
+    });
+
+    task.then((TaskSnapshot snapshot) {
+      _recuperarUrlImagem(snapshot);
+    });
+  }
+
+  _recuperarUrlImagem(TaskSnapshot snapshot) async {
+    String url = await snapshot.ref.getDownloadURL();
+  }
 
   _recuperarDadosUsuario() async {
     FirebaseAuth auth = FirebaseAuth.instance;
