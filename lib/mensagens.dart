@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
@@ -25,6 +27,7 @@ class _MensagensState extends State<Mensagens> {
   FirebaseFirestore db = FirebaseFirestore.instance;
 
   final TextEditingController _controllerMensagem = TextEditingController();
+  final _controller = StreamController<QuerySnapshot>.broadcast();
 
   _enviarMensagem() {
     String textoMensagem = _controllerMensagem.text;
@@ -140,6 +143,21 @@ class _MensagensState extends State<Mensagens> {
 
     _idUsuarioLogado = usuarioLogado!.uid;
     _idUsuarioDestinatario = widget.contato.idUsuario;
+    _adicionarListenerMensagens();
+  }
+
+  Stream<QuerySnapshot> _adicionarListenerMensagens() {
+    final stream = db
+        .collection("mensagens")
+        .doc(_idUsuarioLogado)
+        .collection(_idUsuarioDestinatario)
+        .snapshots();
+
+    stream.listen((dados) {
+      _controller.add(dados);
+    });
+
+    return stream;
   }
 
   @override
@@ -199,11 +217,7 @@ class _MensagensState extends State<Mensagens> {
     );
 
     var stream = StreamBuilder(
-      stream: db
-          .collection("mensagens")
-          .doc(_idUsuarioLogado)
-          .collection(_idUsuarioDestinatario)
-          .snapshots(),
+      stream: _controller.stream,
       builder: (context, snapshot) {
         switch (snapshot.connectionState) {
           case ConnectionState.none:
@@ -218,7 +232,7 @@ class _MensagensState extends State<Mensagens> {
             );
           case ConnectionState.active:
           case ConnectionState.done:
-            QuerySnapshot<Map<String, dynamic>>? querySnapshot = snapshot.data;
+            QuerySnapshot<Object?>? querySnapshot = snapshot.data;
 
             if (snapshot.hasError) {
               return const Text("Erro ao carregar os dados!");
