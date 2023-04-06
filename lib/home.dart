@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:whatsapp/telas/abacontatos.dart';
 import 'package:whatsapp/telas/abaconversas.dart';
+import 'dart:io';
 
 class Home extends StatefulWidget {
   const Home({super.key});
@@ -90,12 +91,13 @@ class _HomeState extends State<Home> with SingleTickerProviderStateMixin {
     return Scaffold(
         appBar: AppBar(
           title: const Text("WhatsApp"),
+          elevation: Platform.isIOS ? 0 : 4,
           bottom: TabBar(
             indicatorWeight: 4,
             labelStyle:
                 const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
             controller: _tabController,
-            indicatorColor: Colors.white,
+            indicatorColor: Platform.isIOS ? Colors.grey[400] : Colors.white,
             // ignore: prefer_const_literals_to_create_immutables
             tabs: [
               const Tab(

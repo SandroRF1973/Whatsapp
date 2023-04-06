@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:whatsapp/model/conversa.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:whatsapp/model/usuario.dart';
 
 class AbaConversas extends StatefulWidget {
   const AbaConversas({super.key});
@@ -21,15 +22,6 @@ class _AbaConversasState extends State<AbaConversas> {
   void initState() {
     super.initState();
     _recuperarDadosUsuario();
-
-    Conversa conversa = Conversa();
-
-    conversa.nome = "Ana Clara";
-    conversa.mensagem = "Olá, tudo bem?";
-    conversa.caminhoFoto =
-        "https://firebasestorage.googleapis.com/v0/b/whatsapp-projeto-64d68.appspot.com/o/perfil%2Fperfil1.jpg?alt=media&token=40b4fcf6-6cf8-43d2-bbb7-e25d11083b05";
-
-    _listaConversas.add(conversa);
   }
 
   Stream<QuerySnapshot> _adicionarListenerConversas() {
@@ -54,6 +46,12 @@ class _AbaConversasState extends State<AbaConversas> {
 
     _adicionarListenerConversas();
   }
+
+  // @override
+  // void dispose() {
+  //   super.dispose();
+  //   _controller.close();
+  // }
 
   @override
   Widget build(BuildContext context) {
@@ -98,8 +96,18 @@ class _AbaConversasState extends State<AbaConversas> {
                   String tipo = item["tipoMensagem"];
                   String mensagem = item["mensagem"];
                   String nome = item["nome"];
+                  String idDestinatario = item["idDestinatario"];
+
+                  Usuario usuario = Usuario();
+                  usuario.nome = nome;
+                  usuario.urlImagem = urlImagem;
+                  usuario.idUsuario = idDestinatario;
 
                   return ListTile(
+                    onTap: () {
+                      Navigator.pushNamed(context, "/mensagens",
+                          arguments: usuario);
+                    },
                     contentPadding: const EdgeInsets.fromLTRB(16, 8, 16, 8),
                     leading: CircleAvatar(
                       maxRadius: 30,
