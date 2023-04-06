@@ -17,8 +17,7 @@ class Mensagens extends StatefulWidget {
 }
 
 class _MensagensState extends State<Mensagens> {
-  bool _subindoImagem = false;
-  late File _imagem;
+  late bool _subindoImagem = false;
   late String _idUsuarioLogado;
   late String _idUsuarioDestinatario;
   FirebaseFirestore db = FirebaseFirestore.instance;
@@ -55,9 +54,9 @@ class _MensagensState extends State<Mensagens> {
   }
 
   _enviarFoto() async {
-    //late File imagemSelecionada;
+    late File imagemSelecionada;
 
-    PickedFile? imagemSelecionada =
+    PickedFile? pickedFile =
         // ignore: invalid_use_of_visible_for_testing_member
         await ImagePicker.platform.pickImage(source: ImageSource.gallery);
 
@@ -70,7 +69,9 @@ class _MensagensState extends State<Mensagens> {
         .child(_idUsuarioLogado)
         .child("$nomeImagem.jpg");
 
-    UploadTask task = arquivo.putFile(_imagem);
+    imagemSelecionada = File(pickedFile!.path);
+
+    UploadTask task = arquivo.putFile(imagemSelecionada);
 
     task.snapshotEvents.listen((TaskSnapshot snapshot) {
       if (snapshot.state == TaskState.running) {
@@ -92,6 +93,18 @@ class _MensagensState extends State<Mensagens> {
 
   _recuperarUrlImagem(TaskSnapshot snapshot) async {
     String url = await snapshot.ref.getDownloadURL();
+
+    Mensagem mensagem = Mensagem();
+    mensagem.idUsuario = _idUsuarioLogado;
+    mensagem.mensagem = "";
+    mensagem.urlImagem = url;
+    mensagem.tipo = "imagem";
+
+    //Salvar mensagem para o remetente
+    _salvarMensagem(_idUsuarioLogado, _idUsuarioDestinatario, mensagem);
+
+    //Salvar mensagem para o destinatário
+    _salvarMensagem(_idUsuarioDestinatario, _idUsuarioLogado, mensagem);
   }
 
   _recuperarDadosUsuario() async {
@@ -130,12 +143,14 @@ class _MensagensState extends State<Mensagens> {
                   fillColor: Colors.white,
                   border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(32)),
-                  prefixIcon: IconButton(
-                    icon: const Icon(Icons.camera_alt),
-                    onPressed: () {
-                      _enviarFoto();
-                    },
-                  ),
+                  prefixIcon: _subindoImagem
+                      ? const CircularProgressIndicator()
+                      : IconButton(
+                          icon: const Icon(Icons.camera_alt),
+                          onPressed: () {
+                            _enviarFoto;
+                          },
+                        ),
                 ),
               ),
             ),
@@ -209,10 +224,12 @@ class _MensagensState extends State<Mensagens> {
                                   color: cor,
                                   borderRadius: const BorderRadius.all(
                                       Radius.circular(8))),
-                              child: Text(
-                                item["mensagem"],
-                                style: const TextStyle(fontSize: 18),
-                              ),
+                              child: item["tipo"] == "texto"
+                                  ? Text(
+                                      item["mensagem"],
+                                      style: const TextStyle(fontSize: 18),
+                                    )
+                                  : Image.network(item["urlImagem"]),
                             ),
                           ),
                         );
