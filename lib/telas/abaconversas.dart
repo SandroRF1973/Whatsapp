@@ -98,6 +98,9 @@ class _AbaConversasState extends State<AbaConversas> {
                   String nome = item["nome"];
                   String idDestinatario = item["idDestinatario"];
 
+                  // ignore: avoid_print
+                  print("Nome: $nome");
+
                   Usuario usuario = Usuario();
                   usuario.nome = nome;
                   usuario.urlImagem = urlImagem;

@@ -28,6 +28,7 @@ class _MensagensState extends State<Mensagens> {
 
   final TextEditingController _controllerMensagem = TextEditingController();
   final _controller = StreamController<QuerySnapshot>.broadcast();
+  final ScrollController _scrollController = ScrollController();
 
   _enviarMensagem() {
     String textoMensagem = _controllerMensagem.text;
@@ -155,6 +156,9 @@ class _MensagensState extends State<Mensagens> {
 
     stream.listen((dados) {
       _controller.add(dados);
+      Timer(const Duration(seconds: 1), () {
+        _scrollController.jumpTo(_scrollController.position.maxScrollExtent);
+      });
     });
 
     return stream;
@@ -239,6 +243,7 @@ class _MensagensState extends State<Mensagens> {
             } else {
               return Expanded(
                   child: ListView.builder(
+                      controller: _scrollController,
                       itemCount: querySnapshot?.docs.length,
                       itemBuilder: (context, indice) {
                         List<DocumentSnapshot> mensagens =
