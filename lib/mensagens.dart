@@ -21,7 +21,8 @@ class Mensagens extends StatefulWidget {
 }
 
 class _MensagensState extends State<Mensagens> {
-  late bool _subindoImagem = false;
+  // ignore: prefer_final_fields
+  bool _subindoImagem = false;
   late String _idUsuarioLogado;
   late String _idUsuarioDestinatario;
   FirebaseFirestore db = FirebaseFirestore.instance;
@@ -38,6 +39,7 @@ class _MensagensState extends State<Mensagens> {
       mensagem.idUsuario = _idUsuarioLogado;
       mensagem.mensagem = textoMensagem;
       mensagem.urlImagem = "";
+      mensagem.data = Timestamp.now().toString();
       mensagem.tipo = "texto";
 
       //Salvar mensagem para o remetente
@@ -85,6 +87,8 @@ class _MensagensState extends State<Mensagens> {
   }
 
   _enviarFoto() async {
+    // ignore: avoid_print
+    print("Metodo _enviarFoto");
     late File imagemSelecionada;
 
     PickedFile? pickedFile =
@@ -129,6 +133,7 @@ class _MensagensState extends State<Mensagens> {
     mensagem.idUsuario = _idUsuarioLogado;
     mensagem.mensagem = "";
     mensagem.urlImagem = url;
+    mensagem.data = Timestamp.now().toString();
     mensagem.tipo = "imagem";
 
     //Salvar mensagem para o remetente
@@ -152,6 +157,7 @@ class _MensagensState extends State<Mensagens> {
         .collection("mensagens")
         .doc(_idUsuarioLogado)
         .collection(_idUsuarioDestinatario)
+        .orderBy("data", descending: false)
         .snapshots();
 
     stream.listen((dados) {
@@ -196,9 +202,7 @@ class _MensagensState extends State<Mensagens> {
                       ? const CircularProgressIndicator()
                       : IconButton(
                           icon: const Icon(Icons.camera_alt),
-                          onPressed: () {
-                            _enviarFoto;
-                          },
+                          onPressed: _enviarFoto,
                         ),
                 ),
               ),

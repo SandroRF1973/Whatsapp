@@ -4,6 +4,7 @@ class Mensagem {
   String? _urlImagem;
   //Define o tipo da mensagem, que pode ser "texto" ou "imagem"
   String? _tipo;
+  String? _data;
 
   Mensagem();
 
@@ -12,7 +13,8 @@ class Mensagem {
       "idUsuario": idUsuario,
       "mensagem": mensagem,
       "urlImagem": urlImagem,
-      "tipo": tipo
+      "tipo": tipo,
+      "data": data
     };
 
     return map;
@@ -40,5 +42,11 @@ class Mensagem {
 
   set tipo(String value) {
     _tipo = value;
+  }
+
+  String get data => _data ?? "";
+
+  set data(String value) {
+    _data = value;
   }
 }

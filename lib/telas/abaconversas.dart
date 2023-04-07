@@ -13,7 +13,8 @@ class AbaConversas extends StatefulWidget {
 }
 
 class _AbaConversasState extends State<AbaConversas> {
-  final List<Conversa> _listaConversas = [];
+  // ignore: prefer_final_fields
+  List<Conversa> _listaConversas = [];
   final _controller = StreamController<QuerySnapshot>.broadcast();
   FirebaseFirestore db = FirebaseFirestore.instance;
   late String _idUsuarioLogado;
